@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const isEscKeydown = (evt) => {
-        if (evt.key = 'Escape') {
+        if (evt.key === 'Escape') {
             closeModal();
         }
         
@@ -211,8 +211,86 @@ document.addEventListener('DOMContentLoaded', () => {
         'img/tabs/hamburger.jpg', 
         'penis', 
         'Меню "Охуенное"', 
-        'В меню "Охуенное" мы накидаем вам плотненьких, сочненьких, жилистых и каменных хуев за щеку, накормим вас самой отборной спермой и вы останетесь довольны',
+        'В меню "Охуенное" мы накидаем вам плотненьких, сочненьких, жилистых, самых отборных, больших и каменных хуев за щеку, и вы останетесь довольны',
          69,
         );
     penis.renderMenuCardByInnerHtml();
+
+    //XMLHTTPRequest
+
+    const messages = {
+        errorMessage: {
+            bgColor: 'red',
+            text: 'Произошла ошибка. Проверьте соединение с интернетом или повторите попытку позже'
+        },
+        succesMessage: {
+            bgColor: 'green',
+            text: 'Успешно отправлено!'
+        }
+    };
+
+    const createMessage = ({bgColor, text}) => {
+        const message = document.createElement('div');
+        message.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background-color: ${bgColor};
+        color: white;
+        font-size: 25px;
+        text-align: center`;
+        message.textContent = `${text}`;
+        closeModal();
+        document.body.append(message);
+        setTimeout(() => {
+            message.remove();
+        }, 5000)
+    };
+
+    const showLoadingMessage = (form) => {
+        const button = form.querySelector('button');
+        button.textContent = 'Отправка...';
+        button.style.paddingRigth = '46px';
+        button.style.backgroundImage = 'url("img/form/spinner.svg")';
+        button.style.backgroundRepeat = 'no-repeat';
+        button.style.backgroundPosition = 'right 6px center';
+        button.style.opacity = '0.7';
+        button.disabled = true;
+    };
+
+    const removeLoadingMessage = (form) => {
+        const button = form.querySelector('button');
+        button.textContent = 'Перезвонить мне';
+        button.style = '';
+        button.disabled = false;
+    }
+
+    const forms = document.querySelectorAll('form');
+
+    const postData = (form) => {
+        form.addEventListener('submit', (evt) => {
+            evt.preventDefault();
+            showLoadingMessage(form);
+            const request = new XMLHttpRequest();
+            request.open('POST', 'server.php');
+
+            // request.setRequestHeader('Content-type', 'multipat/form-data');
+            const formDarta = new FormData(form);
+            request.send(formDarta);
+            
+            request.addEventListener('load', () => {
+                if (request.status === 200) {
+                    createMessage(messages.succesMessage);
+                    removeLoadingMessage(form);
+                } else {
+                    createMessage(messages.errorMessage);
+                    removeLoadingMessage(form);
+                }
+            });
+            form.reset();
+        });
+    };
+    forms.forEach(form => postData(form));
 });
