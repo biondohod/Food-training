@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', openModal);
     })
 
-    const modalOpenTimerId = setTimeout(openModal, 9999915000);
+    const modalOpenTimerId = setTimeout(openModal, 30000);
 
     window.addEventListener('scroll', openModalByScroll);
 
@@ -216,8 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     penis.renderMenuCardByInnerHtml();
 
-    //XMLHTTPRequest
-
+    // Post Data
     const messages = {
         errorMessage: {
             bgColor: 'red',
@@ -268,28 +267,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const forms = document.querySelectorAll('form');
+    
+    //XMLHTTPRequest
+    
+    const XMLHTTPRequest = () => {
+        const postData = (form) => {
+            form.addEventListener('submit', (evt) => {
+                evt.preventDefault();
+                showLoadingMessage(form);
+                const request = new XMLHttpRequest();
+                request.open('POST', 'server.php');
 
+                // request.setRequestHeader('Content-type', 'multipat/form-data');
+                const formDarta = new FormData(form);
+                request.send(formDarta);
+                
+                request.addEventListener('load', () => {
+                    if (request.status === 200) {
+                        createMessage(messages.succesMessage);
+                        removeLoadingMessage(form);
+                    } else {
+                        createMessage(messages.errorMessage);
+                        removeLoadingMessage(form);
+                    }
+                });
+                form.reset();
+            });
+        };
+        forms.forEach(form => postData(form));
+    };
+
+    //Fetch 
     const postData = (form) => {
         form.addEventListener('submit', (evt) => {
             evt.preventDefault();
             showLoadingMessage(form);
-            const request = new XMLHttpRequest();
-            request.open('POST', 'server.php');
-
-            // request.setRequestHeader('Content-type', 'multipat/form-data');
-            const formDarta = new FormData(form);
-            request.send(formDarta);
-            
-            request.addEventListener('load', () => {
-                if (request.status === 200) {
-                    createMessage(messages.succesMessage);
-                    removeLoadingMessage(form);
-                } else {
-                    createMessage(messages.errorMessage);
-                    removeLoadingMessage(form);
-                }
-            });
-            form.reset();
+            const formData = new FormData(form);
+            fetch('server.php', {
+                method: 'POST',
+                body: formData
+            }).then(() => {
+                createMessage(messages.succesMessage);
+                removeLoadingMessage(form);
+            }).catch(() => {
+                createMessage(messages.errorMessage);
+                removeLoadingMessage(form);
+            }).finally(() => {
+                form.reset();
+            })
         });
     };
     forms.forEach(form => postData(form));
