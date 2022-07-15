@@ -138,15 +138,19 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', openModalByScroll);
 
     //Class to menu cards
-    const menuCardContainer = document.querySelector('.menu__field .container');
     class MenuCard {
-        constructor(src, alt, title, description, price, ...classes) {
+        constructor(src, alt, title, description, price, parentClass, ...classes) {
             this.src = src;
             this.alt = alt;
             this.title = title;
             this.description = description;
-            this.price = price;
+            this.price = this.usdToRub(price);
             this.classes = classes;
+            this.parentClass = parentClass;
+        }
+
+        usdToRub(price) {
+            return price * 60;
         }
 
         renderMenuCard () {
@@ -183,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardPrice.append(cardPriceCost);
             cardPrice.append(cardPriceTotal);
             card.append(cardPrice);
-
+            const menuCardContainer = document.querySelector(this.parentClass);
             menuCardContainer.append(card);
         }
 
@@ -200,21 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="menu__item-divider"></div>
             <div class="menu__item-price">
                 <div class="menu__item-cost">Цена:</div>
-                <div class="menu__item-total"><span>${this.price}</span> грн/день
+                <div class="menu__item-total"><span>${this.price}</span> руб/день
             </div>
             `
+            const menuCardContainer = document.querySelector(this.parentClass);
             menuCardContainer.append(card);
         }
     }
-
-    const penis = new MenuCard(
-        'img/tabs/hamburger.jpg', 
-        'penis', 
-        'Меню "Охуенное"', 
-        'В меню "Охуенное" мы накидаем вам плотненьких, сочненьких, жилистых, самых отборных, больших и каменных хуев за щеку, и вы останетесь довольны',
-         69,
-        );
-    penis.renderMenuCardByInnerHtml();
 
     // Post Data
     const messages = {
@@ -298,24 +294,132 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     //Fetch 
-    const postData = (form) => {
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data
+        });
+        return await res.json();
+    };
+
+    const bindPostData = (form) => {
         form.addEventListener('submit', (evt) => {
             evt.preventDefault();
             showLoadingMessage(form);
             const formData = new FormData(form);
-            fetch('server.php', {
-                method: 'POST',
-                body: formData
-            }).then(() => {
-                createMessage(messages.succesMessage);
-                removeLoadingMessage(form);
-            }).catch(() => {
-                createMessage(messages.errorMessage);
-                removeLoadingMessage(form);
-            }).finally(() => {
-                form.reset();
-            })
+            //Form data to JSON 1 
+            // const jsonObj = {};
+            // formData.forEach((value, key) => {
+            //     console.log(value, key);
+            //     jsonObj[key] = value;
+            // })
+            //Form data to JSON 2 
+            const jsonObj = JSON.stringify(Object.fromEntries(formData.entries()));
+            postData('http://localhost:3000/requests', jsonObj) 
+                .then((data) => {
+                    console.log(data);
+                    createMessage(messages.succesMessage);
+                }).catch(() => {
+                    createMessage(messages.errorMessage);
+                }).finally(() => {
+                    form.reset();
+                    removeLoadingMessage(form);
+                })
         });
     };
-    forms.forEach(form => postData(form));
+    forms.forEach(form => bindPostData(form));
+    //Рендер карточек через JSON сервер 
+    const getData = async (url) => {
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`Не удалось выполнить запрос по адресу ${url}, статус: ${res.status}`);
+        }
+        return await res.json();
+    };
+    getData('http://localhost:3000/menu')
+        .then(data => {
+            data.forEach(({img, altimg, title, descr, price}) => {
+                new MenuCard(img, altimg, title, descr, price, '.menu__field .container').renderMenuCardByInnerHtml();
+            });
+        });
+    // Slider 
+    const slider = document.querySelector('.offer__slider');
+    const sliderWrapper = slider.querySelector('.offer__slider-wrapper');
+    const sliderField = slider.querySelector('.offer__slider-inner');
+    const sliderCurrent = slider.querySelector('#current');
+    const sliderTotal = slider.querySelector('#total');
+    const sliderPrevious = slider.querySelector('.offer__slider-prev');
+    const sliderNext = slider.querySelector('.offer__slider-next');
+    const sliderPhotos = slider.querySelectorAll('.offer__slide');
+    sliderTotal.textContent = getZero(sliderPhotos.length);
+
+    // Slider with animation 
+    let width = window.getComputedStyle(sliderWrapper).width;
+    width = +width.slice(0, width.length - 2);
+
+    sliderField.style.width = `${100 * sliderPhotos.length}%`;
+    sliderField.style.display = 'flex';
+    sliderField.style.transition = '0.8s all';
+    sliderWrapper.style.overflow = 'hidden';
+    sliderPhotos.forEach(slide => slide.style.width = `${width}px`);
+    sliderCurrent.textContent = getZero(1);
+    let offset = 0;
+    const togglePrevSlide = () => {
+        if (offset === 0) {
+            offset = width * (sliderPhotos.length -1);
+            sliderCurrent.textContent = getZero(sliderPhotos.length);
+        } else {
+            offset -= width;
+            sliderCurrent.textContent = getZero(sliderCurrent.textContent - 1);
+        }
+        sliderField.style.transform = `translateX(-${offset}px)`;
+    };
+    const toggleNextSlide = () => {
+        if (offset === width * (sliderPhotos.length -1)) {
+            offset = 0;
+            sliderCurrent.textContent = getZero(1);
+        } else {
+            offset += width;
+            sliderCurrent.textContent = getZero(+sliderCurrent.textContent + 1);
+        }
+        sliderField.style.transform = `translateX(-${offset}px)`;
+    };
+    sliderPrevious.addEventListener('click', togglePrevSlide);
+    sliderNext.addEventListener('click', toggleNextSlide);
+
+    // Slider without animation
+    // const showSlidePhoto = (index) => {
+    //     sliderPhotos.forEach((photo, i) => {
+    //         if (i !== index) {
+    //             photo.classList.add('hidden');
+    //         } else {
+    //             photo.classList.remove('hidden');
+    //         }
+    //     })
+    // };
+    // const togglePrevSlide = () => {
+    //     if (sliderCurrent.textContent > 1) {
+    //         sliderCurrent.textContent = getZero(--sliderCurrent.textContent);
+    //         showSlidePhoto(sliderCurrent.textContent - 1);
+    //     } else {
+    //         sliderCurrent.textContent = getZero(sliderPhotos.length);
+    //         showSlidePhoto(sliderPhotos.length -1);
+    //     }
+    // };
+    // const toggleNextSlide = () => {
+    //     if (sliderCurrent.textContent < sliderPhotos.length) {
+    //         sliderCurrent.textContent = getZero(++sliderCurrent.textContent);
+    //         showSlidePhoto(sliderCurrent.textContent - 1);
+    //     } else {
+    //         sliderCurrent.textContent = getZero(1);
+    //         showSlidePhoto(0);
+    //     }
+    // };
+    // showSlidePhoto(0);
+    // sliderCurrent.textContent = getZero(1);
+    // sliderPrevious.addEventListener('click', togglePrevSlide);
+    // sliderNext.addEventListener('click', toggleNextSlide);
 });
