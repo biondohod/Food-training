@@ -468,4 +468,64 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    //Калькулятор калорий
+    const calories = document.querySelector('.calculating__result span');
+    let sex = 'female',
+        height, weight, age,
+        ratio = 1.375;
+    const calcCalories = () => {
+        if (!sex || !height || !weight || !age || !ratio) {
+            console.log(sex, height, ratio);
+            calories.textContent = '____';
+            return;
+        }
+        if (sex === 'male') {
+            calories.textContent = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * ratio);
+        } else {
+            calories.textContent = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * ratio);
+        }
+    };
+    calcCalories();
+
+    const getStaticData = (selector, activeClass) => {
+        const elements = document.querySelectorAll(`${selector} .calculating__choose-item`);
+        elements.forEach((element) => {
+            element.addEventListener('click', (evt) => {
+                if (evt.target.getAttribute('data-ratio')) {
+                    ratio = +evt.target.getAttribute('data-ratio');
+                } else {
+                    sex = evt.target.getAttribute('id');
+                }
+                elements.forEach((item) => {
+                    item.classList.remove(activeClass);
+                });
+                element.classList.add(activeClass);
+                calcCalories();
+            });
+        });
+    };
+    getStaticData('#gender', 'calculating__choose-item_active');
+    getStaticData('.calculating__choose_big', 'calculating__choose-item_active');
+    
+    const getDynamicData = (selector) => {
+        const elements = document.querySelectorAll(`${selector} input`);
+        elements.forEach((element) => {
+            element.addEventListener('input', (evt) => {
+                switch(element.id) {
+                    case 'height':
+                        height = +evt.target.value;
+                        break;
+                    case 'weight':
+                        weight = +evt.target.value;
+                        break;
+                    case 'age':
+                        age = +evt.target.value;
+                        break;
+                };
+                calcCalories();
+            });
+        })
+    };
+    getDynamicData('.calculating__choose_medium');
 });
