@@ -12,7 +12,7 @@ createSlider({
     field: '.offer__slider-inner',
     current: '#current',
     total: '#total',
-    previous: '.offer__slider-prev',
+    previous: '.offer_slider-prev',
     next: '.offer__slider-next',
     sliderElement: '.offer__slide'
 });

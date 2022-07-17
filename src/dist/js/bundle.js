@@ -410,7 +410,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "createSlider": () => (/* binding */ createSlider)
 /* harmony export */ });
 /* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "./src/js/modules/utils.js");
- // Slider 
+ // Slider
  
  const createSlider = ({sliderSelector, wrapper, field, current, total, previous, next, sliderElement}) => {
     const slider = document.querySelector(sliderSelector);
@@ -422,90 +422,94 @@ __webpack_require__.r(__webpack_exports__);
     const sliderNext = slider.querySelector(next);
     const sliderPhotos = slider.querySelectorAll(sliderElement);
     sliderTotal.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderPhotos.length);
+    try {
+        // Slider with animation
+      let width = window.getComputedStyle(sliderWrapper).width;
+      width = +width.replace(/\D/g, '');
 
-    // Slider with animation 
-    let width = window.getComputedStyle(sliderWrapper).width;
-    width = +width.replace(/\D/g, '');
+      sliderField.style.width = `${100 * sliderPhotos.length}%`;
+      sliderField.style.display = 'flex';
+      sliderField.style.transition = '0.8s all';
+      sliderWrapper.style.overflow = 'hidden';
+      sliderPhotos.forEach(slide => slide.style.width = `${width}px`);
+      sliderTotal.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderPhotos.length);
+      sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(1);
+      let offset = 0;
+      const togglePrevSlide = () => {
+          if (offset === 0) {
+              offset = width * (sliderPhotos.length -1);
+              sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderPhotos.length);
+              setCurrentDot();
+          } else {
+              offset -= width;
+              sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderCurrent.textContent - 1);
+              setCurrentDot();
+          }
+          sliderField.style.transform = `translateX(-${offset}px)`;
+      };
+      const toggleNextSlide = () => {
+          if (offset === width * (sliderPhotos.length -1)) {
+              offset = 0;
+              sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(1);
+              setCurrentDot();
+          } else {
+              offset += width;
+              sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(+sliderCurrent.textContent + 1);
+              setCurrentDot();
+          }
+          sliderField.style.transform = `translateX(-${offset}px)`;
+      };
+      sliderPrevious.addEventListener('click', togglePrevSlide);
+      sliderNext.addEventListener('click', toggleNextSlide);
 
-    sliderField.style.width = `${100 * sliderPhotos.length}%`;
-    sliderField.style.display = 'flex';
-    sliderField.style.transition = '0.8s all';
-    sliderWrapper.style.overflow = 'hidden';
-    sliderPhotos.forEach(slide => slide.style.width = `${width}px`);
-    sliderTotal.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderPhotos.length);
-    sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(1);
-    let offset = 0;
-    const togglePrevSlide = () => {
-        if (offset === 0) {
-            offset = width * (sliderPhotos.length -1);
-            sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderPhotos.length);
-            setCurrentDot();
-        } else {
-            offset -= width;
-            sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(sliderCurrent.textContent - 1);
-            setCurrentDot();
-        }
-        sliderField.style.transform = `translateX(-${offset}px)`;
-    };
-    const toggleNextSlide = () => {
-        if (offset === width * (sliderPhotos.length -1)) {
-            offset = 0;
-            sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(1);
-            setCurrentDot();
-        } else {
-            offset += width;
-            sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(+sliderCurrent.textContent + 1);
-            setCurrentDot();
-        }
-        sliderField.style.transform = `translateX(-${offset}px)`;
-    };
-    sliderPrevious.addEventListener('click', togglePrevSlide);
-    sliderNext.addEventListener('click', toggleNextSlide);
+      // Точки для слайдера
+      const sliderNavigation = document.createElement('ol');
+      const createSliderNavigation = () => {
+          sliderWrapper.style.position = 'relative';
+          sliderNavigation.classList.add('carousel-indicators');
+          for (let i = 0; i < sliderTotal.textContent; i++) {
+              const dot = document.createElement('li');
+              dot.classList.add('dot');
+              dot.setAttribute('data-slide-to', i+1);
+              if (i+1 == sliderCurrent.textContent) {
+                  dot.style.opacity = 1;
+              }
+              sliderNavigation.append(dot);
+          };
+          sliderWrapper.append(sliderNavigation);
+      };
+      createSliderNavigation();
+      const dotsButton = sliderNavigation.querySelectorAll('li');
+      const setSlideByDot = (dot) => {
+          const dotData = dot.dataset.slideTo;
+          offset = width * (dotData -1);
+          sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(dotData);
+          sliderField.style.transform = `translateX(-${offset}px)`;
+          setCurrentDot();
+      };
 
-    // Точки для слайдера 
-    const sliderNavigation = document.createElement('ol');
-    const createSliderNavigation = () => {
-        sliderWrapper.style.position = 'relative';
-        sliderNavigation.classList.add('carousel-indicators');
-        for (let i = 0; i < sliderTotal.textContent; i++) {
-            const dot = document.createElement('li');
-            dot.classList.add('dot');
-            dot.setAttribute('data-slide-to', i+1);
-            if (i+1 == sliderCurrent.textContent) {
-                dot.style.opacity = 1;
-            }
-            sliderNavigation.append(dot);
-        };
-        sliderWrapper.append(sliderNavigation);
-    };
-    createSliderNavigation();
-    const dotsButton = sliderNavigation.querySelectorAll('li');
-    const setSlideByDot = (dot) => {
-        const dotData = dot.dataset.slideTo;
-        offset = width * (dotData -1);
-        sliderCurrent.textContent = (0,_utils_js__WEBPACK_IMPORTED_MODULE_0__.getZero)(dotData);
-        sliderField.style.transform = `translateX(-${offset}px)`;
-        setCurrentDot();
-    };
+      dotsButton.forEach((dot) => {
+          dot.addEventListener('click', (evt) => setSlideByDot(evt.target));
+      });
 
-    dotsButton.forEach((dot) => {
-        dot.addEventListener('click', (evt) => setSlideByDot(evt.target));
-    });
-
-    function setCurrentDot() {
-        const index = (offset / width) + 1;
-        dotsButton.forEach((dot) => {
-            if (index == dot.dataset.slideTo) {
-                dot.style.opacity = 1;
-            } else {
-                dot.style = '';
-            }
-        });
+      function setCurrentDot() {
+          const index = (offset / width) + 1;
+          dotsButton.forEach((dot) => {
+              if (index == dot.dataset.slideTo) {
+                  dot.style.opacity = 1;
+              } else {
+                  dot.style = '';
+              }
+          });
+      }
+    } catch(err) {
+      throw new Error(`An invalid selector was passed or one of the elements does not exist on the page. Error message: ${err.message}`);
     }
+
  };
 
  
- 
+
 
 /***/ }),
 
@@ -730,7 +734,7 @@ __webpack_require__.r(__webpack_exports__);
     field: '.offer__slider-inner',
     current: '#current',
     total: '#total',
-    previous: '.offer__slider-prev',
+    previous: '.offer_slider-prev',
     next: '.offer__slider-next',
     sliderElement: '.offer__slide'
 });
