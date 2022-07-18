@@ -1,3 +1,4 @@
+import 'nodelist-foreach-polyfill';
 import './modules/tabs.js';
 import './modules/timer.js';
 import './modules/modal.js';
@@ -12,7 +13,7 @@ createSlider({
     field: '.offer__slider-inner',
     current: '#current',
     total: '#total',
-    previous: '.offer_slider-prev',
+    previous: '.offer__slider-prev',
     next: '.offer__slider-next',
     sliderElement: '.offer__slide'
 });
